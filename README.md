@@ -62,14 +62,16 @@ prj_BreastAgeNet/
 │   ├── slide1/slide1_maskuse.png
 │   └── ...
 ├── Features/KHP
-│   ├── slide1/slide1_TCprobmask.npy
-│   ├── slide1/slide1_TC.png
-│   ├── slide1/slide1_All.csv
-│   ├── slide1/slide1_epi_(wsi_mask_ratio,0,0,width,height)-mask.png,
-│   ├── slide1/slide1_patch.csv
-│   ├── slide1/slide1_bbx.png
+│   ├── slide1/slide1_TC_512_probmask.npy     # This is the tissue classification results
+│   ├── slide1/slide1_TC_512.png              # This visualises the tissue classification map
+│   ├── slide1/slide1_TC_512_All.csv          # This saves all classified patches
+│   ├── slide1/slide1_TC_512_cls.json         # This imports all classified patches into QuPath using the . script
+│   ├── slide1/slide1_TC_512_epi_(wsi_mask_ratio,0,0,width,height)-mask.png      # This imports detected lobuels into QuPath using the . script
+│   ├── slide1/slide1_TC_512_patch.csv        # This saves the selected patches
+│   ├── slide1/slide1_TC_512_ROIdetection.json     # This imports selected patches into QuPath using the . script
+│   ├── slide1/slide1_TC_512_bbx.png          # This visualises the selected ROIs
 │   └── ...
 ```
-
+ 
  
 For a full implementation of **_NBT-Classifier_**, please take a look at [notebook pipeline](pipeline.ipynb). 
