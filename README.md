@@ -65,10 +65,10 @@ prj_BreastAgeNet/
 │   ├── slide1/slide1_TC_512_probmask.npy     # This is the tissue classification results
 │   ├── slide1/slide1_TC_512.png              # This visualises the tissue classification map
 │   ├── slide1/slide1_TC_512_All.csv          # This saves all classified patches
-│   ├── slide1/slide1_TC_512_cls.json         # This imports all classified patches into QuPath using the . script
-│   ├── slide1/slide1_TC_512_epi_(wsi_mask_ratio,0,0,width,height)-mask.png      # This imports detected lobuels into QuPath using the . script
+│   ├── slide1/slide1_TC_512_cls.json         # This imports all classified patches into QuPath using the annotation_loader.groovy script
+│   ├── slide1/slide1_TC_512_epi_(wsi_mask_ratio,0,0,width,height)-mask.png      # This imports detected lobuels into QuPath using the mask2annotation.groovy script
 │   ├── slide1/slide1_TC_512_patch.csv        # This saves the selected patches
-│   ├── slide1/slide1_TC_512_ROIdetection.json     # This imports selected patches into QuPath using the . script
+│   ├── slide1/slide1_TC_512_ROIdetection.json     # This imports selected patches into QuPath using the annotation_loader.groovy script
 │   ├── slide1/slide1_TC_512_bbx.png          # This visualises the selected ROIs
 │   └── ...
 ```
