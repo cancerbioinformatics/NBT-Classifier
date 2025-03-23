@@ -47,9 +47,9 @@ prj_BreastAgeNet/
 Then, use the following script to classify NBT tissue components:
 ```
 python main.py \
-  --wsi_folder /path/to/WSI/directory \
-  --mask_folder /path/to/mask/directory \
-  --output_folder /path/to/output/directory \
+  --wsi_folder /path/to/WSIs/directory \
+  --mask_folder /path/to/QC/directory \
+  --output_folder /path/to/Features/directory \
   --model_type TC_512 \
   ----patch_size_microns 128
 ```
@@ -60,9 +60,6 @@ prj_BreastAgeNet/
 ├── WSIs
 ├── QC/KHP
 │   ├── slide1/slide1_maskuse.png
-│   └── ...
-├── TC/KHP
-│   ├── slide1/slide1_TCmask.png
 │   └── ...
 ├── Features/KHP
 │   ├── slide1/slide1_TCprobmask.npy
