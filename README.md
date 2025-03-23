@@ -33,7 +33,7 @@ prj_BreastAgeNet/
 
 First, implement HistoQC to detect foreground tissue regions:
 ```
-python -m histoqc -c v2.1 -n 3 "*.ndpi" # "*.mrxs", "*.svs"
+python -m histoqc -c v2.1 -n 3 "/path/to/slides/*.ndpi" -o "/path/to/output/folder"
 ```
 This step yields:
 ```
@@ -46,40 +46,14 @@ prj_BreastAgeNet/
 
 Then, use the following script to classify NBT tissue components:
 ```
-python run_TC.py \
-  --WSI /path/to/WSI/directory \
-  --MASK /path/to/mask/directory \
-  --TC_output /path/to/output/directory \
-  --WEIGHT data/MobileNet512px.h5 \
-  --foreground_thes 0.7 \
-  --patch_size 128 \
-  --save_TCmap True \
-  --free_space True \
-```
-This step yields:
-```
-prj_BreastAgeNet/
-├── WSIs
-├── QC/KHP
-│   ├── slide1/slide1_maskuse.png
-│   └── ...
-├── TC/KHP
-│   ├── slide1/slide1_TCmask.png
-│   └── ...
+python main.py \
+  --wsi_folder /path/to/WSI/directory \
+  --mask_folder /path/to/mask/directory \
+  --output_folder /path/to/output/directory \
+  --model_type TC_512 \
+  ----patch_size_microns 128
 ```
 
-Finally, use the following script to localise ROIs:
-```
-python run_bbx.py \
-  --WSI /path/to/WSI/directory \
-  --TC_output /path/to/output/directory \
-  --patch_size 128 \
-  --upsample 32 \
-  --small_objects 400000 \
-  --roi_width 250 \
-  --save_bbxpng \
-  --save_patchcsv
-```
 This step yields:
 ```
 prj_BreastAgeNet/
@@ -91,8 +65,14 @@ prj_BreastAgeNet/
 │   ├── slide1/slide1_TCmask.png
 │   └── ...
 ├── Features/KHP
+│   ├── slide1/slide1_TCprobmask.npy
+│   ├── slide1/slide1_TC.png
+│   ├── slide1/slide1_All.csv
+│   ├── slide1/slide1_epi_(wsi_mask_ratio,0,0,width,height)-mask.png,
 │   ├── slide1/slide1_patch.csv
+│   ├── slide1/slide1_bbx.png
 │   └── ...
 ```
 
+ 
 For a full implementation of **_NBT-Classifier_**, please take a look at [notebook pipeline](pipeline.ipynb). 
