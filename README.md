@@ -51,7 +51,7 @@ python main.py \
   --mask_folder /path/to/QC/directory \
   --output_folder /path/to/Features/directory \
   --model_type TC_512 \
-  ----patch_size_microns 128
+  --patch_size_microns 128
 ```
 
 This step yields:
