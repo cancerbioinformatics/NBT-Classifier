@@ -27,13 +27,17 @@ def parse_args():
     parser.add_argument('--upscale_factor', type=int, default=32, help="Upscale factor for processing masks.")
     parser.add_argument('--small_objects', type=int, choices=[400000, 250000], default=400000, help="Minimum object size to retain in the mask. Must be one of [400000, 250000].")
     parser.add_argument('--roi_width', type=int, default=250, help="Width of ROI for localized processing (None for all patches).")
+    
+    parser.add_argument('--use_multithreading', action='store_true', help="Enable multithreaded tile processing.", default=True)
+    parser.add_argument('--max_workers', type=int, default=8, help="Number of worker threads/processes to use if multithreading is enabled.")
 
     return parser.parse_args()
 
 
 
-def process_all_slides(mask_folder, wsi_folder, output_folder, 
-                       model_type, patch_size_microns=128, foreground_thes=0.7, free_space=False, 
+
+def process_all_slides(mask_folder, wsi_folder, output_folder, model_type, 
+                       patch_size_microns=128, foreground_thes=0.7, free_space=False, use_multithreading=True, max_workers=8,
                        upscale_factor=32, small_objects=400000, roi_width=250):
 
     if model_type == 'TC_512':
@@ -67,7 +71,7 @@ def process_all_slides(mask_folder, wsi_folder, output_folder,
         patch_size, _ = parse_patch_size(wsi, patch_size_microns)
 
         TC_maskpt = os.path.join(output_dir, f"{wsi_name}_{model_type}_probmask.npy")
-        tissue_map = run_TC_one_slide(wsi, mask_path, TC_maskpt, patch_size, foreground_thes, IMAGE_SIZE, model, free_space)
+        tissue_map = run_TC_one_slide(wsi, mask_path, TC_maskpt, patch_size, foreground_thes, IMAGE_SIZE, model, free_space, use_multithreading, max_workers)
 
         Allpatch_pt = f"{output_dir}/{wsi_name}_{model_type}_All.csv"
         cls_df = save_Allpatch(tissue_map, patch_size, Allpatch_pt) 
@@ -99,7 +103,8 @@ def main():
 
     process_all_slides(mask_folder=args.mask_folder, wsi_folder=args.wsi_folder, output_folder=args.output_folder,
                        model_type=args.model_type, patch_size_microns=args.patch_size_microns, foreground_thes=args.foreground_threshold,
-                       free_space=args.free_space, upscale_factor=args.upscale_factor, small_objects=args.small_objects, roi_width=args.roi_width)
+                       free_space=args.free_space, use_multithreading=args.use_multithreading, max_workers=args.max_workers,
+                       upscale_factor=args.upscale_factor, small_objects=args.small_objects, roi_width=args.roi_width)
 
 
 
