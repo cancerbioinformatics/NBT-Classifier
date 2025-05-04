@@ -42,11 +42,11 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
 
     if model_type == 'TC_512':
         IMAGE_SIZE = (512, 512)
-        model_weights = '/scratch_tmp/prj/cb_normalbreast/prj_BreastAgeNet/CKPTs/TC_512px.h5'
+        model_weights = './data/TC_512px.h5'
         model = get_TC(model_weights, image_size=IMAGE_SIZE, num_classes=3, output_features=False)
     elif model_type == 'TC_1024':
         IMAGE_SIZE = (1024, 1024)
-        model_weights = '/scratch_tmp/prj/cb_normalbreast/prj_BreastAgeNet/CKPTs/TC_1024px.h5'
+        model_weights = './data/TC_1024px.h5'
         model = get_TC(model_weights, image_size=IMAGE_SIZE, num_classes=3, output_features=False)
     
     foreground_masks = glob.glob(f"{mask_folder}/*/*_mask_use.png")
