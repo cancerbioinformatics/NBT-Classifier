@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--small_objects', type=int, choices=[400000, 250000], default=400000, help="Minimum object size to retain in the mask. Must be one of [400000, 250000].")
     parser.add_argument('--roi_width', type=int, default=250, help="Width of ROI for localized processing (None for all patches).")
     
-    parser.add_argument('--use_multithreading', action='store_true', help="Enable multithreaded tile processing.", default=True)
+    parser.add_argument('--use_multithreading', action='store_true', help="Enable multithreaded tile processing.")
     parser.add_argument('--max_workers', type=int, default=8, help="Number of worker threads/processes to use if multithreading is enabled.")
 
     return parser.parse_args()
