@@ -20,7 +20,7 @@ from matplotlib.colors import ListedColormap, Colormap
 from skimage import morphology
 import matplotlib.pyplot as plt
 from PIL import Image
-Image.MAX_IMAGE_PIXELS = 1000000000
+Image.MAX_IMAGE_PIXELS = 1000000000 
 
 import tensorflow as tf
 from tensorflow import keras
@@ -30,9 +30,9 @@ from tensorflow.keras.applications.mobilenet import MobileNet, preprocess_input
 from tensorflow.keras.layers import Resizing
 from tensorflow.keras.utils import Sequence
 
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import functools
-
 
 
 
@@ -64,10 +64,12 @@ def get_wsiname(file):
 
 
 
+
 def parse_patch_size(wsi, patch_size_microns=128):
     mpp_x, mpp_y = float(wsi.properties['openslide.mpp-x']), float(wsi.properties['openslide.mpp-y'])
     patch_size_x, patch_size_y = int(patch_size_microns // mpp_x), int(patch_size_microns // mpp_y)
     return patch_size_x, patch_size_y
+
 
 
 
@@ -78,6 +80,7 @@ def Reinhard(img_arr, standard_img="./data/he.jpg"):
     normalizer.fit(target)
     img_to_transform = staintools.LuminosityStandardizer.standardize(img_arr)
     return normalizer.transform(img_to_transform)
+
 
 
 
@@ -95,6 +98,8 @@ def process_tile_static(wsi, image_level, x, y, patch_size, stride, level_multip
     except Exception as e:
         print(f"Error processing tile at ({x}, {y}) in {wsi_path}: {e}")
         return None
+
+
 
 
 
@@ -162,7 +167,7 @@ class SlideIterator:
             if max_workers is None:
                 max_workers = os.cpu_count()
 
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 with tqdm(total=len(coords), desc=f"Extracting patches from {filename}") as pbar:
                     futures = {executor.submit(process_fn, x, y): (x, y) for x, y in coords}
 
@@ -201,91 +206,6 @@ class SlideIterator:
 
 
 
-# class SlideIterator:
-#     def __init__(self, wsi, image_level, mask_path=None, threshold_mask=0.8):
-#         self.image = wsi
-#         self.image_level = image_level
-#         self.image_shape = self.image.level_dimensions[image_level]
-#         self.image_level_multiplier = self.image.level_dimensions[0][0] // self.image.level_dimensions[1][0]
-#         self.mask_path = mask_path
-
-#         if mask_path:
-#             try:
-#                 self.mask = np.transpose(np.load(mask_path), axes=(1, 0))
-#                 self.mask_shape = self.mask.shape
-#             except Exception as e:
-#                 raise ValueError(f"Error loading mask from {mask_path}: {e}")
-#         else:
-#             self.mask = None
-#             self.mask_shape = None
-
-#         self.image_mask_ratio = 1 if self.mask is None else int(self.image_shape[0] / self.mask_shape[0])
-#         self.threshold_mask = threshold_mask
-
-#     def get_image_shape(self, stride):
-#         return (self.image_shape[0] // stride, self.image_shape[1] // stride)
-
-#     def iterate_patches(self, patch_size, stride, downsample=1):
-#         self.feature_shape = self.get_image_shape(stride)
-#         level_multiplier = self.image_level_multiplier ** self.image_level
-#         patch_ratio = patch_size // self.image_mask_ratio
-
-#         for index_y in range(0, self.image_shape[1], stride):
-#             for index_x in range(0, self.image_shape[0], stride):
-#                 if (index_x // stride >= self.feature_shape[0]) or (index_y // stride >= self.feature_shape[1]):
-#                     continue
-                
-#                 if self.mask is not None:
-#                     mask_x, mask_y = int(index_x / self.image_mask_ratio), int(index_y / self.image_mask_ratio)
-#                     mask_tile = self.mask[mask_x: mask_x + patch_ratio, mask_y: mask_y + patch_ratio].flatten()
-#                 else:
-#                     mask_tile = None
-                
-#                 if mask_tile is None or mask_tile.mean() > self.threshold_mask:
-#                     image_tile = np.array(
-#                         self.image.read_region(
-#                             (int(index_x * level_multiplier), int(index_y * level_multiplier)),
-#                             self.image_level,
-#                             (patch_size, patch_size)
-#                         ).convert("RGB")
-#                     ).astype('uint8')
-                    
-#                     image_tile = Reinhard(image_tile)
-                    
-#                     if downsample != 1:
-#                         image_tile = image_tile[::downsample, ::downsample, :]
-                    
-#                     if mask_tile is None and image_tile.mean() >= 240:
-#                         continue
-                    
-#                     yield (image_tile, mask_tile, index_x // stride, index_y // stride)
-
-
-    # def save_array(self, patch_size, stride, output_pattern, downsample=1):
-    #     filename = os.path.splitext(os.path.basename(output_pattern))[0]
-    #     image_tiles, xs, ys = [], [], []
-        
-    #     total_patches = (self.image_shape[0] // stride) * (self.image_shape[1] // stride)
-    #     with tqdm(total=total_patches, desc=f"Extracting patches from {filename}") as pbar:
-    #         for image_tile, _, x, y in self.iterate_patches(patch_size, stride, downsample):
-    #             image_tiles.append(image_tile)
-    #             xs.append(x)
-    #             ys.append(y)
-    #             pbar.update(1)
-        
-    #     image_tiles = np.stack(image_tiles, axis=0).astype('uint8')
-    #     xs, ys = np.array(xs), np.array(ys)
-    #     image_shape = self.get_image_shape(stride)
-        
-    #     np.save(f"{output_pattern}_patches.npy", image_tiles)
-    #     np.save(f"{output_pattern}_x_idx.npy", xs)
-    #     np.save(f"{output_pattern}_y_idx.npy", ys)
-    #     np.save(f"{output_pattern}_im_shape.npy", image_shape)
-    #     print(f"Tiles extracted for {filename}, {image_tiles.shape[0]} tissue tiles saved.")
-
-
-
-
 
 def vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, use_multithreading, max_workers):
     patches_file = output_pattern + '_patches.npy'
@@ -300,19 +220,6 @@ def vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, u
     print(f"Vectorization completed for {output_pattern.split('_pattern')[0]}.")
     return si
 
-
-# def vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern):
-#     patches_file = output_pattern + '_patches.npy'
-#     if os.path.exists(patches_file):
-#         print(f"Pattern files for {output_pattern.split('_pattern')[0]} already exist. Skipping preprocessing.")
-#         return None  # Return None or the existing SlideIterator if needed
-    
-#     print(f"Preprocessing {output_pattern.split('_pattern')[0]}...")
-#     si = SlideIterator(wsi=wsi, image_level=0, mask_path=mask_path, threshold_mask=foreground_thes)
-#     si.save_array(patch_size=patch_size, stride=patch_size, output_pattern=output_pattern, downsample=1)
-    
-#     print(f"Vectorization completed for {output_pattern.split('_pattern')[0]}.")
-#     return si
 
 
 
@@ -354,6 +261,7 @@ class WsiNpySequence(keras.utils.Sequence):
 
 
 
+    
 def predict_tc(model, wsi_sequence):
     print("Predicting tissue classes...")
 
@@ -369,6 +277,7 @@ def predict_tc(model, wsi_sequence):
 
 
 
+
 def clean_up_temp_files(TC_maskpt):
     output_dir = os.path.basename(TC_maskpt)
     for temp_file in glob.glob(f"{output_dir}/*pattern*"):
@@ -376,8 +285,7 @@ def clean_up_temp_files(TC_maskpt):
         print(f"{temp_file} removed!")
 
 
-
-
+        
 
 def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMAGE_SIZE=None, model=None, free_space=False, use_multithreading=True, max_workers=8):
     if not os.path.exists(save_pt):
@@ -402,33 +310,9 @@ def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMA
         tissue_map = np.load(save_pt)
                   
     return tissue_map
+
+
     
-
-# def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMAGE_SIZE=None, model=None, free_space=False):
-#     if not os.path.exists(save_pt):
-#         mask_arr = np.array(Image.open(mask_pt))
-#         mask_path = mask_pt.replace("_mask_use.png", "_mask_use.npy")
-#         np.save(mask_path, (mask_arr / 255).astype("uint8"))
-#         print(f"Mask saved at {mask_path}.")
-    
-#         output_pattern = save_pt.replace("_TCprobmask.npy", "_pattern")
-#         vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern)
-
-#         wsi_sequence = WsiNpySequence(wsi_pattern=output_pattern, batch_size=8, IMAGE_SIZE=IMAGE_SIZE)
-        
-#         tissue_map = predict_tc(model, wsi_sequence)
-#         np.save(save_pt, tissue_map)
-#         print(f"Tissue map saved at {save_pt}.")        
-
-#         if free_space:
-#             clean_up_temp_files(save_pt) 
-            
-#     else:
-#         tissue_map = np.load(save_pt)
-                  
-#     return tissue_map
-    
-
 
 def save_tc_map(tissue_map, wsi_path, save_pt):
     wsi = openslide.OpenSlide(wsi_path)
@@ -443,6 +327,8 @@ def save_tc_map(tissue_map, wsi_path, save_pt):
     im.save(save_pt)
     print(f"TC Map saved at {save_pt}.")
 
+    
+    
     
 
 def save_Allpatch(tissue_map, patch_size, save_pt):
@@ -746,7 +632,3 @@ class PatchDataset(Sequence):
                 print(f"Skipping corrupted image: {img_path} ({str(e)})")
         
         return np.array(batch_images), np.array(valid_labels), valid_paths  # Return valid batch images, labels, and paths
-
-
-
-
