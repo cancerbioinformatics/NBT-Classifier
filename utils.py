@@ -30,7 +30,7 @@ from tensorflow.keras.applications.mobilenet import MobileNet, preprocess_input
 from tensorflow.keras.layers import Resizing
 from tensorflow.keras.utils import Sequence
 
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import functools
 
 
@@ -126,7 +126,7 @@ class SlideIterator:
 
         for index_y in range(0, self.image_shape[1], stride):
             for index_x in range(0, self.image_shape[0], stride):
-                if (index_x // stride >= self.feature_shape[0]) or (index_y // stride >= self.feature_shape[1]):
+                if (index_x // stride >= self.coords_shape[0]) or (index_y // stride >= self.coords_shape[1]):
                     continue
 
                 if self.mask is not None:
