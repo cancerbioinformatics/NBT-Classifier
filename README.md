@@ -33,7 +33,7 @@ prj_BreastAgeNet/
 
 First, implement HistoQC to detect foreground tissue regions:
 ```
-python -m histoqc -c v2.1 -n 3 "/path/to/slides/*.ndpi" -o "/path/to/output/folder"
+python -m histoqc -c NBT -n 3 '../project-data/WSIs/*.ndpi' -o '../project-data/QCs'
 ```
 This step yields:
 ```
@@ -47,9 +47,9 @@ prj_BreastAgeNet/
 Then, use the following script to classify NBT tissue components:
 ```
 python main.py \
-  --wsi_folder /path/to/WSIs/directory \
-  --mask_folder /path/to/QC/directory \
-  --output_folder /path/to/Features/directory \
+  --wsi_folder ../project-data/WSIs \
+  --mask_folder ../project-data/QCs \
+  --output_folder ../project-data/FEATUREs \
   --model_type TC_512 \
   --patch_size_microns 128
 ```
