@@ -294,7 +294,7 @@ def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMA
         np.save(mask_path, (mask_arr / 255).astype("uint8"))
         print(f"Mask saved at {mask_path}.")
     
-        output_pattern = save_pt.replace("_TCprobmask.npy", "_pattern")
+        output_pattern = save_pt.replace("_probmask.npy", "_pattern")
         vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, use_multithreading, max_workers)
 
         wsi_sequence = WsiNpySequence(wsi_pattern=output_pattern, batch_size=8, IMAGE_SIZE=IMAGE_SIZE)
