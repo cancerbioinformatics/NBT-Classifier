@@ -22,7 +22,7 @@ from tensorflow.keras.utils import Sequence
 
 
 
-def Reinhard(img_arr, standard_img="/scratch_tmp/users/k21066795/he_shg_synth_workflow/thumbnails/he.jpg"):
+def Reinhard(img_arr, standard_img="./data/he.jpg"):
     target = staintools.read_image(standard_img)
     target = staintools.LuminosityStandardizer.standardize(target)
     normalizer = staintools.ReinhardColorNormalizer()

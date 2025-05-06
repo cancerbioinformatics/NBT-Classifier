@@ -1,12 +1,16 @@
 import argparse
 import glob
 import os
-import pandas as pd
 from PIL import Image
 import numpy as np
 import openslide
 from utils import *
 
+import warnings
+warnings.filterwarnings('ignore', 
+    message='.*Attempting to register factory for plugin.*')
+warnings.filterwarnings('ignore',
+    message='.*computation placer already registered.*')
 
 
 def parse_args():
@@ -73,10 +77,10 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
         TC_maskpt = os.path.join(output_dir, f"{wsi_name}_{model_type}_probmask.npy")
         tissue_map = run_TC_one_slide(wsi, mask_path, TC_maskpt, patch_size, foreground_thes, IMAGE_SIZE, model, free_space, use_multithreading, max_workers)
 
-        Allpatch_pt = f"{output_dir}/{wsi_name}_{model_type}_All.csv"
+        Allpatch_pt = f"{output_dir}/{wsi_name}_{model_type}_patch_all.csv"
         cls_df = save_Allpatch(tissue_map, patch_size, Allpatch_pt) 
         
-        json_pt = f"{output_dir}/{wsi_name}_{model_type}_cls.json"
+        json_pt = f"{output_dir}/{wsi_name}_{model_type}_cls_wsi.json"
         get_JSON(cls_df, json_pt, patch_size, require_bounds)
 
         tc_map_path = os.path.join(output_dir, f"{wsi_name}_{model_type}.png")
@@ -86,10 +90,10 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
         epi_mask_pt = f"{output_dir}/{wsi_name}_{model_type}_epi_({int(wsi_mask_ratio)},0,0,{epi_mask.shape[1]},{epi_mask.shape[0]})-mask.png"
         save_epi_mask(epi_mask, epi_mask_pt)
 
-        patch_pt = f"{output_dir}/{wsi_name}_{model_type}_patch.csv"
+        patch_pt = f"{output_dir}/{wsi_name}_{model_type}_patch_roi.csv"
         patch_df = save_ROIpatch(tissue_map, epi_mask, wsi_mask_ratio, roi_width, patch_size, patch_pt)
         
-        json_pt = f"{output_dir}/{wsi_name}_{model_type}_ROIdetection.json"
+        json_pt = f"{output_dir}/{wsi_name}_{model_type}_cls_roi.json"
         get_JSON(patch_df, json_pt, patch_size, require_bounds)
 
         overlay_path = f"{output_dir}/{wsi_name}_{model_type}_bbx.png"
@@ -111,3 +115,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

@@ -64,7 +64,6 @@ def get_wsiname(file):
 
 
 
-
 def parse_patch_size(wsi, patch_size_microns=128):
     mpp_x, mpp_y = float(wsi.properties['openslide.mpp-x']), float(wsi.properties['openslide.mpp-y'])
     patch_size_x, patch_size_y = int(patch_size_microns // mpp_x), int(patch_size_microns // mpp_y)
@@ -98,7 +97,6 @@ def process_tile_static(wsi, image_level, x, y, patch_size, stride, level_multip
     except Exception as e:
         print(f"Error processing tile at ({x}, {y}) in {wsi_path}: {e}")
         return None
-
 
 
 
@@ -265,7 +263,7 @@ class WsiNpySequence(keras.utils.Sequence):
 def predict_tc(model, wsi_sequence):
     print("Predicting tissue classes...")
 
-    tc_predictions = model.predict(wsi_sequence, steps=len(wsi_sequence), verbose=0)  # Disable default verbosity
+    tc_predictions = model.predict(wsi_sequence, steps=len(wsi_sequence), verbose=1)  
 
     tissue_map = np.ones((wsi_sequence.image_shape[1], wsi_sequence.image_shape[0], tc_predictions.shape[1])) * np.nan
     
@@ -329,7 +327,6 @@ def save_tc_map(tissue_map, wsi_path, save_pt):
 
     
     
-    
 
 def save_Allpatch(tissue_map, patch_size, save_pt):
     patch_data = []
@@ -373,6 +370,7 @@ def build_disrete_cmap(number=3):
 
     cmap = ListedColormap(colors, N=colors.shape[0])
     return cmap
+
 
 
 
@@ -447,6 +445,7 @@ def process_TCmask(wsi, tissue_map, upsample, small_objects, roi_width):
     epi_mask = epi_mask.astype("uint8")
 
     return epi_mask, roi_width, wsi_mask_ratio
+
 
 
 
