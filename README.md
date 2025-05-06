@@ -50,7 +50,7 @@ The nbtclassifier Docker image has an exposed volume (/app) that can be mapped t
 
 The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support (--nv):
 ```
-singularity shell --nv \ 
+singularity shell --nv \
 --bind /the/host/folder/project:/app/project \
 --writable-tmpfs \
 ./nbtclassifier_latest.sif
