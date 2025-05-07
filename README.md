@@ -12,6 +12,7 @@
 
 
 ## 1. Installation
+
 To get started, install [HistoQC](https://github.com/choosehappy/HistoQC.git) and NBT-Classifier:
 ```
 git clone https://github.com/choosehappy/HistoQC.git
@@ -20,17 +21,16 @@ cd NBT-Classifier
 conda env create -f environment.yml
 conda activate nbtclassifier
 ```
-For detailed implementation, please refer to the Docker section below.
-
 
 
 ## 2. Docker
-NBT-Classifier supports Docker for reproducible analysis of user histology data, with tutorial examples for both command-line and Jupyter notebook. 
+NBT-Classifier supports Docker for reproducible analysis of user histology data, with examples for both command-line and Jupyter notebook. 
 
 To get the Docker image:
 ```
 docker pull siyuan726/nbtclassifier:latest
 ```
+
 or use singularity for HPC:
 ```
 singularity pull docker://siyuan726/nbtclassifier:latest
@@ -38,6 +38,7 @@ singularity pull docker://siyuan726/nbtclassifier:latest
 
 
 ## 3. Implementation using host data 
+
 Host data is expected to be organised as follows:
 ```
 project/
@@ -57,8 +58,8 @@ singularity shell --nv \  # Enable NVIDIA GPU support
 source /opt/conda/etc/profile.d/conda.sh
 conda activate nbtclassifier 
 ```
-
 Within the nbtclassifier docker container, you will see an app folder under "root" and the host directory `/the/host/folder/project` is mounted to the `/app/project` folder.
+
 
 First, implement HistoQC to obtain masks of foreground tissue regions:
 ```
@@ -169,6 +170,8 @@ python main.py \
 --use_multithreading \
 --max_workers 32
 ```
+the results can then be checked in the host directory `/the/host/folder/project`.
+
 
 
 ## 5. Jupyter notebook Demonstration Using Example Data
@@ -180,7 +183,7 @@ The nbtclassifier Docker image provides reproducible demonstrations of the follo
 - [feature visualisation](/notebooks/vis_features.ipynb)
 
 
-For this, within the nbtclassifier docker container, run the following:
+To access and run the notebooks, within the nbtclassifier docker container, execute the following:
 ```
 cd /app/NBT-Classifier
 
@@ -197,21 +200,34 @@ Please then check the notebooks in the `/notebooks` folder
 
 
 
-## 6. QuPath
+## 6. QuPath Demonstration Using Example Data
 
-NBT-Classifiers output pseaudo patch-level annotations for the whole slide or the lobular regions, which can be visualise and analysed further in QuPath.
+NBT-Classifiers output pseudo patch-level annotations for the whole slide or the identified lobular regions, which can be visualised and analysed further in QuPath.
 
-The nbtclassifier Docker Image provides examples for the use of QuPath. Within the nbtclassifier docker container, run the following:
+The nbtclassifier Docker Image provides examples for the use of QuPath. Within the nbtclassifier docker container, run the following to copy the `/QuPath` folder to your local file system.
+
 ```
 cp -r /app/examples/QuPath /app/project/
 ```
 
-this will copy the /QuPath folder to your local file system.
+In your host directory `/the/host/folder/project, you will find:
+```
+project/
+├── QuPath/
+|   ├── project.qpproj
+|   │── scripts/
+|   ├── 17064108_FPE_1.ndpi
+|   │── annotations/17064108_FPE_1.geojson
+|   │── 17064108_FPE_1_TC_512_cls_wsi.json
+|   │── 17064108_FPE_1_TC_512_cls_roi.json
+|   │── masks/17064108_FPE_1.ndpi_epi_(18,0,0,8704,6208)-mask.png
+|   └── ...
+└── ...
+```
 
-Open the QuPath project (you might need to re-link the location of the example WSI)
+You could then:
+- open the QuPath project `project.qpproj` (you might need to re-link the WSI `17064108_FPE_1.ndpi`);
+- load `17064108_FPE_1.geojson` to check the corresponding manual annotation;
+- go to `Automate` -> `Project scripts...` -> `mask2annotation` to load the binary lobule mask `17064108_FPE_1.ndpi_epi_(18,0,0,8704,6208)-mask.png`;
+- go to `Automate` -> `Project scripts...` -> `annotation loader` to load the .json files `17064108_FPE_1_TC_512_cls_wsi.json` and `17064108_FPE_1_TC_512_cls_roi.json` (please make sure the Fill mode is enabled for detection).
 
-Go to `Automate` -> `Project scripts...` -> `mask2annotation` to load the binary lobule mask: 17064108_FPE_1_TC_512_epi_(18,0,0,8704,6208)-mask.png.
-
-Go to `Automate` -> `Project scripts...` -> `annotation loader` to load the .json files (please make sure the Fill mode is enabled for detection).
-
-Moreover, import the `/app/examples/QuPath/annotations/17064108_FPE_1.geojson` into QuPath to see the manual annotation for the example slide.
