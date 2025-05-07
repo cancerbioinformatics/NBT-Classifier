@@ -75,8 +75,8 @@ python main.py \
 --output_folder /app/project/FEATUREs \
 --model_type TC_512 \
 --patch_size_microns 128 \
---use_multithreading \   # Remove this line to disable multithreading (use single-threaded mode)
---max_workers 32
+--use_multithreading  # Remove this line to disable multithreading (use single-threaded mode) \
+--max_workers 32 # change this to fit your system’s CPU capacity
 ```
 
 These two steps yields:
