@@ -10,7 +10,6 @@
 </p>
 
 
-
 ## 1. Installation
 
 To get started, install [HistoQC](https://github.com/choosehappy/HistoQC.git) and NBT-Classifier:
