@@ -48,10 +48,10 @@ project/
 
 The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support:
 ```
-singularity shell --nv \  # Enable NVIDIA GPU support
---bind /the/host/folder/project:/app/project \  # Mount host folder to /app/project in container
---writable-tmpfs \  # Allow writing to a temporary filesystem
-./nbtclassifier_latest.sif  # Singularity image to launch
+singularity shell --nv \
+--bind /the/host/folder/project:/app/project \
+--writable-tmpfs \
+./nbtclassifier_latest.sif 
 
 # manually activate conda environment
 source /opt/conda/etc/profile.d/conda.sh
