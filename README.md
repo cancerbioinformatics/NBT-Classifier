@@ -11,7 +11,7 @@
 
 
 
-## Installation
+## 1. Installation
 To get started, install [HistoQC](https://github.com/choosehappy/HistoQC.git) and NBT-Classifier:
 ```
 git clone https://github.com/choosehappy/HistoQC.git
@@ -24,7 +24,7 @@ For detailed implementation, please refer to the Docker section below.
 
 
 
-## Docker
+## 2. Docker
 NBT-Classifier supports Docker for reproducible analysis of user histology data, with tutorial examples for both command-line and Jupyter notebook. 
 
 To get the Docker image:
@@ -37,7 +37,7 @@ singularity pull docker://siyuan726/nbtclassifier:latest
 ```
 
 
-## Implementation using host data 
+## 3. Implementation using host data 
 Host data is expected to be organised as follows:
 ```
 project/
@@ -46,55 +46,24 @@ project/
 └── FEATUREs/
 ```
 
-The nbtclassifier Docker image has an exposed volume (/app) that can be mapped to the host folder (such as project/). 
+The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support:
+```
+singularity shell --nv \  # Enable NVIDIA GPU support
+--bind /the/host/folder/project:/app/project \  # Mount host folder to /app/project in container
+--writable-tmpfs \  # Allow writing to a temporary filesystem
+./nbtclassifier_latest.sif  # Singularity image to launch
 
-The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support (--nv):
-```
-singularity shell --nv \
---bind /the/host/folder/project:/app/project \
---writable-tmpfs \
-./nbtclassifier_latest.sif
-```
-the Host directory (/the/host/folder/project) is mounted to /app/project and the --writable-tmpfs ensures a temporary writable folder /tmp.
-Within the nbtclassifier docker container, you will see an app folder under "root":
-```
-/app/
-├── NBT-Classifier/
-├── HistoQC/
-├── examples/
-├── Dockerfile
-└── project/
-    ├── WSIs/host slides, such as slide1.ndpi, slide2.ndpi, slide3.svs, ...
-    ├── QCs/
-    └── FEATUREs/
-```
-
-Implement HistoQC to obtain masks of foreground tissue regions:
-```
 # manually activate conda environment
 source /opt/conda/etc/profile.d/conda.sh
-conda activate nbtclassifier
+conda activate nbtclassifier 
+```
 
+Within the nbtclassifier docker container, you will see an app folder under "root" and the host directory `/the/host/folder/project` is mounted to the `/app/project` folder.
+
+First, implement HistoQC to obtain masks of foreground tissue regions:
+```
 cd /app/HistoQC
-python -m histoqc -c NBT -n 3 '/app/project/WSIs/*.ndpi' -o '/app/project/QCs'
-```
-Note, change `.ndpi` into the exact format of the host WSI files
-
-This step yields:
-```
-/app/
-├── NBT-Classifier/
-├── HistoQC/
-├── examples/
-├── Dockerfile
-└── project/
-    ├── WSIs/
-    ├── QCs/
-    │   |── slide1/slide1_maskuse.png, ... 
-    │   |── slide2/slide2_maskuse.png, ...
-    │   |── slide3/slide3_maskuse.png, ...
-    │   └── ... 
-    └── FEATUREs/     
+python -m histoqc -c NBT -n 3 '/app/project/WSIs/*.ndpi' -o '/app/project/QCs'    #change `.ndpi` into the exact format of the host WSI files
 ```
 
 Then, use the following script to tessellate and classify NBT tissue components on WSIs:
@@ -106,11 +75,11 @@ python main.py \
 --output_folder /app/project/FEATUREs \
 --model_type TC_512 \
 --patch_size_microns 128 \
---use_multithreading \
---max_workers 8
+--use_multithreading \   # Remove this line to disable multithreading (use single-threaded mode)
+--max_workers 32
 ```
 
-This step yields:
+These two steps yields:
 ```
 /app/
 ├── NBT-Classifier/
@@ -120,6 +89,8 @@ This step yields:
 └── project/
     ├── WSIs/
     ├── QCs/
+    │   |── slide1/slide1_mask_use.png, ... 
+    │   └── ... 
     └── FEATUREs/
         |── slide1/
         |   ├──slide1_TC_512_pattern_x_idx.npy     
@@ -137,6 +108,7 @@ This step yields:
         └── ...
 ```
 
+
 Alternatively, tessellate and classify NBTs using larger patches of 1024x1024 pixels:
 ```
 cd /app//NBT-Classifier
@@ -146,18 +118,19 @@ python main.py \
 --output_folder /app/project/FEATUREs \
 --model_type TC_1024 \
 --patch_size_microns 256 \
---use_multithreading \
---max_workers 8
+--use_multithreading \    # Remove this line to disable multithreading (use single-threaded mode)
+--max_workers 32
 ```
 
 
-## Implementation using example data 
-In the local terminal, prepare the following folders:
+## 4. Command-Line Implementation Using Example Data
+
+In the local terminal, please prepare the following folders:
 ```
 mkdir -p /path/to/your/project/QCs /path/to/your/project/FEATUREs
 ```
 
-then run the following to launch the nbtclassifier docker container:
+run the following to launch the nbtclassifier docker container:
 ```
 singularity shell --nv \ 
 --bind /path/to/your/project:/app/project \
@@ -165,8 +138,9 @@ singularity shell --nv \
 ./nbtclassifier_latest.sif
 ```
 
-Within the container, run the following:
+within the container, run the following:
 ```
+# manually activate conda environment
 source /opt/conda/etc/profile.d/conda.sh
 conda activate nbtclassifier
 
@@ -183,7 +157,7 @@ python main.py \
 --model_type TC_512 \
 --patch_size_microns 128 \
 --use_multithreading \
---max_workers 8
+--max_workers 32
 
 # or tessellate and classify WSIs of NBTs using 1024x1024-pixel patches
 python main.py \
@@ -193,16 +167,22 @@ python main.py \
 --model_type TC_1024 \
 --patch_size_microns 256 \
 --use_multithreading \
---max_workers 8
+--max_workers 32
 ```
 
 
-## Jupyter notebooks
-The notebooks demonstrating [NBT-Classifier framework](/notebooks/NBT_pipeline.ipynb), [manual annotation](/notebooks/vis_annotation.ipynb), [model interpretability](/notebooks/vis_CAMs.ipynb), and [feature visualisation](/notebooks/vis_features.ipynb) can be reproduced in the nbtclassifier Docker Image. 
+## 5. Jupyter notebook Demonstration Using Example Data
+
+The nbtclassifier Docker image provides reproducible demonstrations of the following notebooks:
+- [NBT-Classifier framework](/notebooks/NBT_pipeline.ipynb) 
+- [manual annotation](/notebooks/vis_annotation.ipynb)
+- [model interpretability](/notebooks/vis_CAMs.ipynb)
+- [feature visualisation](/notebooks/vis_features.ipynb)
+
 
 For this, within the nbtclassifier docker container, run the following:
 ```
-cd /app//NBT-Classifier
+cd /app/NBT-Classifier
 
 # register the conda environment as a Jupyter kernel
 python -m ipykernel install \
@@ -213,14 +193,15 @@ python -m ipykernel install \
 chmod +x run_jupyter.sh
 ./run_jupyter.sh
 ```
-Please then check the notebooks in `/app/NBT-Classifier/notebooks`
+Please then check the notebooks in the `/notebooks` folder
 
 
 
-## QuPath
-The nbtclassifier Docker Image also provides examples for the use of QuPath. 
+## 6. QuPath
 
-Within the nbtclassifier docker container,
+NBT-Classifiers output pseaudo patch-level annotations for the whole slide or the lobular regions, which can be visualise and analysed further in QuPath.
+
+The nbtclassifier Docker Image provides examples for the use of QuPath. Within the nbtclassifier docker container, run the following:
 ```
 cp -r /app/examples/QuPath /app/project/
 ```
