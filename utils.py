@@ -288,7 +288,7 @@ def clean_up_temp_files(TC_maskpt):
 def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMAGE_SIZE=None, model=None, free_space=False, use_multithreading=True, max_workers=8):
     if not os.path.exists(save_pt):
         mask_arr = np.array(Image.open(mask_pt))
-        mask_path = mask_pt.replace("_mask_use.png", "_mask_use.npy")
+        mask_path = os.path.join(os.path.dirname(save_pt), os.path.basename(mask_pt).replace("_mask_use.png", "_mask_use.npy")) 
         np.save(mask_path, (mask_arr / 255).astype("uint8"))
         print(f"Mask saved at {mask_path}.")
     
@@ -308,6 +308,7 @@ def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMA
         tissue_map = np.load(save_pt)
                   
     return tissue_map
+
 
 
     
