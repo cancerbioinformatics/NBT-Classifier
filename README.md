@@ -49,7 +49,7 @@ project/
 The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support:
 ```
 singularity shell --nv \
---bind /the/host/folder/project:/app/project \
+--bind /the/host/folder/project:/app/project \ 
 --writable-tmpfs \
 ./nbtclassifier_latest.sif 
 
@@ -118,8 +118,8 @@ python main.py \
 --output_folder /app/project/FEATUREs \
 --model_type TC_1024 \
 --patch_size_microns 256 \
---use_multithreading \    # Remove this line to disable multithreading (use single-threaded mode)
---max_workers 32
+--use_multithreading  # Remove this line to disable multithreading (use single-threaded mode) \
+--max_workers 32 # change this to fit your system’s CPU capacity
 ```
 
 
