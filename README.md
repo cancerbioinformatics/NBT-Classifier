@@ -210,7 +210,7 @@ The nbtclassifier Docker Image provides examples for the use of QuPath. Within t
 cp -r /app/examples/QuPath /app/project/
 ```
 
-In your host directory `/the/host/folder/project, you will find:
+In your host directory `/the/host/folder/project`, you will find:
 ```
 project/
 ├── QuPath/
