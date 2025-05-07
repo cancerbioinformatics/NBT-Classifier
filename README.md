@@ -49,7 +49,7 @@ project/
 The following code launches Singularity container on a HPC GPU computation node with NVIDIA GPU support:
 ```
 singularity shell --nv \
---bind /the/host/folder/project:/app/project \ 
+--bind /the/host/folder/project:/app/project \
 --writable-tmpfs \
 ./nbtclassifier_latest.sif 
 
