@@ -22,7 +22,7 @@ conda activate nbtclassifier
 ```
 
 
-## 2. Docker
+## 2. [Docker](https://hub.docker.com/repository/docker/siyuan726/nbtclassifier/general)
 NBT-Classifier supports Docker for reproducible analysis of user histology data, with examples for both command-line and Jupyter notebook. 
 
 To get the Docker image:
