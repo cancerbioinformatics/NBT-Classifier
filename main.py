@@ -5,6 +5,7 @@ from PIL import Image
 import numpy as np
 import openslide
 from utils import *
+from pathlib import Path
 
 import warnings
 warnings.filterwarnings('ignore', 
@@ -44,13 +45,15 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
                        patch_size_microns=128, foreground_thes=0.7, free_space=False, use_multithreading=True, max_workers=8,
                        upscale_factor=32, small_objects=400000, roi_width=250):
 
+    BASE_DIR = Path(__file__).resolve().parent
+
     if model_type == 'TC_512':
         IMAGE_SIZE = (512, 512)
-        model_weights = './data/TC_512px.h5'
+        model_weights = BASE_DIR / "data" / "TC_512px.h5"
         model = get_TC(model_weights, image_size=IMAGE_SIZE, num_classes=3, output_features=False)
     elif model_type == 'TC_1024':
         IMAGE_SIZE = (1024, 1024)
-        model_weights = './data/TC_1024px.h5'
+        model_weights = BASE_DIR / "data" / "TC_1024px.h5"
         model = get_TC(model_weights, image_size=IMAGE_SIZE, num_classes=3, output_features=False)
     
     foreground_masks = glob.glob(f"{mask_folder}/*/*_mask_use.png")
@@ -76,6 +79,10 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
 
         TC_maskpt = os.path.join(output_dir, f"{wsi_name}_{model_type}_probmask.npy")
         tissue_map = run_TC_one_slide(wsi, mask_path, TC_maskpt, patch_size, foreground_thes, IMAGE_SIZE, model, free_space, use_multithreading, max_workers)
+
+        if tissue_map is None:
+            print("Tissue map not found.")
+            continue
 
         Allpatch_pt = f"{output_dir}/{wsi_name}_{model_type}_patch_all.csv"
         cls_df = save_Allpatch(tissue_map, patch_size, Allpatch_pt) 
