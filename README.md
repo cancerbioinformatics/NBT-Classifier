@@ -1,8 +1,8 @@
-# **Normal breast tissue classifiers assess large-scale tissue compartments with high accuracy**
+# **Normal breast tissue (NBT)-classifiers: advancing compartment classification in normal breast histology**
 
-[Paper](https://www.biorxiv.org/content/10.1101/2025.04.27.649481v1)
+[Paper](https://www.nature.com/articles/s41523-026-00896-2)
 
-**Abstract:** Cancer research emphasises early detection, yet quantitative methods for normal tissue analysis remain limited. Digitised haematoxylin and eosin (H&E)-stained slides enable computational histopathology, but artificial intelligence (AI)-based analysis of normal breast tissue (NBT) in whole slide images (WSIs) remains scarce. We curated 70 WSIs of NBTs from multiple sources and cohorts with pathologist-guided manual annotations of epithelium, stroma, and adipocytes (https://github.com/cancerbioinformatics/OASIS). Using this dataset, we developed robust convolutional neural network (CNN)-based, patch-level classification models, named NBT-Classifiers, to tessellate and classify NBTs at different scales. Across three external cohorts, NBT-Classifiers trained on 128 x 128 µm and 256 x 256 µm patches achieved AUCs of 0.98–1.00. Two explainable AI-visualisation techniques confirmed the biological relevance of tissue class predictions. Moreover, NBT-Classifiers can be integrated into an end-to-end pre-processing framework to support efficient downstream image analysis in lobular regions. Their high compatibility with QuPath further enables broader application in studies of normal tissues, in the context of breast.
+**Abstract:** Cancer research emphasises early detection, yet quantitative methods for normal tissue analysis remain limited. Digitised haematoxylin and eosin (H&E)-stained slides enable computational histopathology, but artificial intelligence (AI)-based analysis of normal breast tissue (NBT) in whole slide images (WSIs) remains scarce. We curated 70 WSIs of NBTs from multiple sources and cohorts with pathologist-guided manual annotations of epithelium, stroma, and adipocytes (https://github.com/cancerbioinformatics/OASIS). Using this dataset, we developed robust convolutional neural network (CNN)-based, patch-level classification models, named NBT-Classifiers, to tessellate and classify NBTs at different scales. Across three external cohorts, NBT-Classifiers trained on 128 x 128 µm and 256 x 256 µm patches achieved AUCs of 0.98–1.00. Two explainable AI-visualisation techniques confirmed the biological relevance of tissue class predictions. Moreover, NBT-Classifiers can be integrated into an end-to-end pre-processing framework to support efficient downstream image analysis in lobular regions. Their compatibility with QuPath further facilitates broader application in studies of normal breast tissues.
 
 
 <p align="center">
@@ -10,35 +10,52 @@
 </p>
 
 
+
+## Requirements
+
+- Docker or Singularity/Apptainer
+- Conda (optional - for local installation)
+- Linux-based environment recommended
+
+
+
 ## 1. Installation
+
+NBT-Classifier incorporates [HistoQC](https://github.com/choosehappy/HistoQC.git) for whole-slide image quality control and tissue masking.
+
+There are two approaches to installing NBT-Classifier, namely:
+
+### Git Clone
 
 To get started, install [HistoQC](https://github.com/choosehappy/HistoQC.git) and NBT-Classifier:
 ```
-git clone https://github.com/choosehappy/HistoQC.git
-git clone https://github.com/SiyuanChen726/NBT-Classifier.git
+git clone https://github.com/cancerbioinformatics/NBT-Classifier.git
 cd NBT-Classifier
 conda env create -f environment.yml
 conda activate nbtclassifier
 ```
 
+### Containersised Implementation (recommended)
 
-## 2. [Docker](https://hub.docker.com/repository/docker/siyuan726/nbtclassifier/general)
+For reproducibility, the software environments and workflow implementations have been packaged as containers.
+
 NBT-Classifier supports Docker for reproducible analysis of user histology data, with examples for both command-line and Jupyter notebook. 
 
-To get the Docker image:
+To pull the Docker image:
 ```
-docker pull siyuan726/nbtclassifier:latest
-```
-
-or use singularity for HPC:
-```
-singularity pull docker://siyuan726/nbtclassifier:latest
+docker pull ghcr.io/cancerbioinformatics/nbtclassifier:latest
 ```
 
+To pull a singularity/apptainer image:
+```
+singularity pull nbtclassifier.sif docker://ghcr.io/cancerbioinformatics/nbtclassifier:latest
+```
 
-## 3. Implementation using host data 
 
-Host data is expected to be organised as follows:
+
+## 2. Implementation Using Host Data 
+
+Input data should be organised as follows:
 ```
 project/
 ├── WSIs/host slides, such as slide1.ndpi, slide2.ndpi, slide3.svs, ...
@@ -51,7 +68,7 @@ The following code launches Singularity container on a HPC GPU computation node 
 singularity shell --nv \
 --bind /the/host/folder/project:/app/project \
 --writable-tmpfs \
-./nbtclassifier_latest.sif 
+./nbtclassifier.sif 
 
 # manually activate conda environment
 source /opt/conda/etc/profile.d/conda.sh
@@ -62,7 +79,6 @@ Within the nbtclassifier docker container, you will see an app folder under "roo
 
 First, implement HistoQC to obtain masks of foreground tissue regions:
 ```
-cd /app/HistoQC
 python -m histoqc -c NBT -n 3 '/app/project/WSIs/*.ndpi' -o '/app/project/QCs'    #change `.ndpi` into the exact format of the host WSI files
 ```
 
@@ -79,7 +95,7 @@ python main.py \
 --max_workers 32 # change this to fit your system’s CPU capacity
 ```
 
-These two steps yields:
+These two steps yield:
 ```
 /app/
 ├── NBT-Classifier/
@@ -101,7 +117,7 @@ These two steps yields:
         |   ├──slide1_TC_512.png                              # This visualises the tissue classification map
         |   ├──slide1_TC_512_patch_all.csv                    # This saves all classified patches
         |   ├──slide1_TC_512_cls_wsi.json                     # This imports all classified patches into QuPath via the annotation_loader.groovy script
-        |   ├──slide1_TC_512_epi_(18,0,0,8704,6208)-mask.png  # This imports detected lobuels into QuPath via the mask2annotation.groovy script
+        |   ├──slide1_TC_512_epi_(18,0,0,8704,6208)-mask.png  # This imports detected lobules into QuPath via the mask2annotation.groovy script
         |   ├──slide1_TC_512_patch_roi.csv                    # This saves the selected patches from ROIs containing lobules and peri-lobular stroma
         |   ├──slide1_TC_512_cls_roi.json                     # This imports selected patches into QuPath using the annotation_loader.groovy script
         |   └──slide1_TC_512_bbx.png                          # This visualises the selected ROIs
@@ -111,7 +127,7 @@ These two steps yields:
 
 Alternatively, tessellate and classify NBTs using larger patches of 1024x1024 pixels:
 ```
-cd /app//NBT-Classifier
+cd /app/NBT-Classifier
 python main.py \
 --wsi_folder /app/project/WSIs \
 --mask_folder /app/project/QCs \
@@ -123,7 +139,8 @@ python main.py \
 ```
 
 
-## 4. Command-Line Implementation Using Example Data
+
+## 3. Command-Line Implementation Using Example Data
 
 In the local terminal, please prepare the following folders:
 ```
@@ -134,8 +151,8 @@ run the following to launch the nbtclassifier docker container:
 ```
 singularity shell --nv \ 
 --bind /path/to/your/project:/app/project \
---writable-tmpfs 
-./nbtclassifier_latest.sif
+--writable-tmpfs \
+./nbtclassifier.sif
 ```
 
 within the container, run the following:
@@ -149,7 +166,7 @@ cd /app/HistoQC
 python -m histoqc -c NBT -n 4 '/app/examples/QuPath/*.ndpi' -o '/app/project/QCs'
 
 # tessellate and classify WSIs of NBTs using 512x512-pixel patches
-cd /app//NBT-Classifier
+cd /app/NBT-Classifier
 python main.py \
 --wsi_folder /app/examples/QuPath \
 --mask_folder /app/project/QCs \
@@ -173,7 +190,7 @@ the results can then be checked in the host directory `/the/host/folder/project`
 
 
 
-## 5. Jupyter notebook Demonstration Using Example Data
+## 4. Jupyter Notebook Demonstration Using Example Data
 
 The nbtclassifier Docker image provides reproducible demonstrations of the following notebooks:
 - [NBT-Classifier framework](/notebooks/NBT_pipeline.ipynb) 
@@ -199,9 +216,9 @@ Please then check the notebooks in the `/notebooks` folder
 
 
 
-## 6. QuPath Demonstration Using Example Data
+## 5. QuPath Demonstration Using Example Data
 
-NBT-Classifiers output pseudo patch-level annotations for the whole slide or the identified lobular regions, which can be visualised and analysed further in QuPath.
+NBT-Classifier outputs pseudo patch-level annotations for the whole slide or the identified lobular regions, which can be visualised and analysed further in QuPath.
 
 The nbtclassifier Docker Image provides examples for the use of QuPath. Within the nbtclassifier docker container, run the following to copy the `/QuPath` folder to your local file system.
 
@@ -230,3 +247,23 @@ You could then:
 - go to `Automate` -> `Project scripts...` -> `mask2annotation` to load the binary lobule mask `17064108_FPE_1.ndpi_epi_(18,0,0,8704,6208)-mask.png`;
 - go to `Automate` -> `Project scripts...` -> `annotation loader` to load the .json files `17064108_FPE_1_TC_512_cls_wsi.json` and `17064108_FPE_1_TC_512_cls_roi.json` (please make sure the Fill mode is enabled for detection).
 
+
+
+## Citation
+
+If you use `NBT-Classifier` in your research, please cite:
+
+> Chen S, Parreno-Centeno M, Booker G, et al. *Normal breast tissue (NBT)-classifiers: advancing compartment classification in normal breast histology*. npj Breast Cancer. 2026;12:41. https://doi.org/10.1038/s41523-026-00896-2
+
+### BibTeX
+
+```bibtex
+@article{chen2026nbt,
+  title={Normal breast tissue (NBT)-classifiers: advancing compartment classification in normal breast histology},
+  author={Chen, Siyuan and Parreno-Centeno, Mario and Booker, Graham and others},
+  journal={npj Breast Cancer},
+  volume={12},
+  pages={41},
+  year={2026},
+  doi={10.1038/s41523-026-00896-2}
+}
