@@ -17,9 +17,12 @@
 - Docker or Singularity/Apptainer (recommended)
 - Linux-based environment (recommended)
 
-NBT-Classifier incorporates [HistoQC](https://github.com/choosehappy/HistoQC.git) for whole-slide image quality control and tissue masking. There are two approaches to installation:
+NBT-Classifier incorporates [HistoQC](https://github.com/choosehappy/HistoQC.git) for whole-slide image quality control and tissue masking. 
+
+Two installation approaches are available:
 
 ### 1.2 Git Clone
+To clone the repository and create the Conda environment:
 
 ```
 git clone https://github.com/cancerbioinformatics/NBT-Classifier.git
