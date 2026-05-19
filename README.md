@@ -261,3 +261,10 @@ If you use `NBT-Classifier` in your research, please cite:
   year={2026},
   doi={10.1038/s41523-026-00896-2}
 }
+```
+
+
+
+## License
+
+This project is licensed under the Apache License 2.0.
