@@ -10,24 +10,17 @@
 </p>
 
 
-
-## Requirements
-
-- Docker or Singularity/Apptainer
-- Conda (optional - for local installation)
-- Linux-based environment recommended
-
-
-
 ## 1. Installation
 
-NBT-Classifier incorporates [HistoQC](https://github.com/choosehappy/HistoQC.git) for whole-slide image quality control and tissue masking.
+### 1.1 Requirements
+- Conda (optional - for local installation using Git clone)
+- Docker or Singularity/Apptainer (recommended)
+- Linux-based environment (recommended)
 
-There are two approaches to installing NBT-Classifier, namely:
+NBT-Classifier incorporates [HistoQC](https://github.com/choosehappy/HistoQC.git) for whole-slide image quality control and tissue masking. There are two approaches to installation:
 
-### Git Clone
+### 1.2 Git Clone
 
-To get started, install [HistoQC](https://github.com/choosehappy/HistoQC.git) and NBT-Classifier:
 ```
 git clone https://github.com/cancerbioinformatics/NBT-Classifier.git
 cd NBT-Classifier
@@ -35,18 +28,16 @@ conda env create -f environment.yml
 conda activate nbtclassifier
 ```
 
-### Containersised Implementation (recommended)
+### 1.3 Containersised Implementation (recommended)
 
-For reproducibility, the software environments and workflow implementations have been packaged as containers.
-
-NBT-Classifier supports Docker for reproducible analysis of user histology data, with examples for both command-line and Jupyter notebook. 
+For reproducibility, the software environments and workflow implementations have been packaged as containers. 
 
 To pull the Docker image:
 ```
 docker pull ghcr.io/cancerbioinformatics/nbtclassifier:latest
 ```
 
-To pull a singularity/apptainer image:
+To pull a Singularity/Apptainer image:
 ```
 singularity pull nbtclassifier.sif docker://ghcr.io/cancerbioinformatics/nbtclassifier:latest
 ```
