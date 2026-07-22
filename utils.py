@@ -198,9 +198,12 @@ class SlideIterator:
             np.save(f"{output_pattern}_y_idx.npy", ys)
             np.save(f"{output_pattern}_im_shape.npy", coords_shape)
 
-            print(f"Tiles extracted for {filename}: {image_tiles.shape[0]} patches saved.")
+            n_patches = image_tiles.shape[0]
+            print(f"Tiles extracted for {filename}: {n_patches} patches saved.")
+            return n_patches
         else:
             print(f"No valid patches found for {filename}.")
+            return 0
 
 
 
@@ -209,14 +212,27 @@ def vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, u
     patches_file = output_pattern + '_patches.npy'
     if os.path.exists(patches_file):
         print(f"Pattern files for {output_pattern.split('_pattern')[0]} already exist. Skipping preprocessing.")
-        return None  # Return None or the existing SlideIterator if needed
+        # return None  # Return None or the existing SlideIterator if needed
+        image_tiles = np.load(patches_file, mmap_mode="r")
+        return image_tiles.shape[0]        
     
     print(f"Preprocessing {output_pattern.split('_pattern')[0]}...")
     si = SlideIterator(wsi=wsi, image_level=0, mask_path=mask_path, threshold_mask=foreground_thes)
-    si.save_array(patch_size=patch_size, stride=patch_size, output_pattern=output_pattern, downsample=1, use_multithreading=use_multithreading, max_workers=max_workers)
+    n_patches = si.save_array(patch_size=patch_size, stride=patch_size, output_pattern=output_pattern, downsample=1, use_multithreading=use_multithreading, max_workers=max_workers)
     
-    print(f"Vectorization completed for {output_pattern.split('_pattern')[0]}.")
-    return si
+    # print(f"Vectorization completed for {output_pattern.split('_pattern')[0]}.")
+    # return si
+    if n_patches > 0:
+        print(
+            f"Vectorization completed for {output_pattern.split('_pattern')[0]} "
+            f"({n_patches} patches)."
+        )
+    else:
+        print(
+            f"Vectorization completed for {output_pattern.split('_pattern')[0]} "
+            "(0 valid patches)."
+        )    
+    return n_patches
 
 
 
@@ -227,10 +243,35 @@ class WsiNpySequence(keras.utils.Sequence):
         self.wsi_pattern = wsi_pattern
         self.IMAGE_SIZE = IMAGE_SIZE
 
-        self.image_tiles = np.load(f'{wsi_pattern}_patches.npy')
-        self.xs = np.load(f'{wsi_pattern}_x_idx.npy')
-        self.ys = np.load(f'{wsi_pattern}_y_idx.npy')
-        self.image_shape = np.load(f'{wsi_pattern}_im_shape.npy')
+        required_files = {
+            "patches": f"{wsi_pattern}_patches.npy",
+            "x indices": f"{wsi_pattern}_x_idx.npy",
+            "y indices": f"{wsi_pattern}_y_idx.npy",
+            "image shape": f"{wsi_pattern}_im_shape.npy",
+        }
+
+        missing = [path for path in required_files.values() if not os.path.exists(path)]
+
+        if missing:
+            raise FileNotFoundError(
+                "Missing preprocessing files:\n"
+                + "\n".join(missing)
+            )
+
+        self.image_tiles = np.load(required_files["patches"])
+        self.xs = np.load(required_files["x indices"])
+        self.ys = np.load(required_files["y indices"])
+        self.image_shape = np.load(required_files["image shape"])
+
+        if not (
+            len(self.image_tiles) == len(self.xs) == len(self.ys)
+        ):
+            raise ValueError(
+                "Inconsistent preprocessing files: "
+                f"{len(self.image_tiles)} patches, "
+                f"{len(self.xs)} x indices, "
+                f"{len(self.ys)} y indices."
+            )
 
         self.n_samples = self.image_tiles.shape[0]
         self.n_batches = int(np.ceil(self.n_samples / self.batch_size))
@@ -293,8 +334,12 @@ def run_TC_one_slide(wsi, mask_pt, save_pt, patch_size, foreground_thes=0.7, IMA
         print(f"Mask saved at {mask_path}.")
     
         output_pattern = save_pt.replace("_probmask.npy", "_pattern")
-        vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, use_multithreading, max_workers)
+        n_patches = vectorise_wsi(wsi, mask_path, patch_size, foreground_thes, output_pattern, use_multithreading, max_workers)
 
+        if n_patches == 0:
+            print("Skipping tissue classification: no valid patches were extracted.")
+            return None
+        
         wsi_sequence = WsiNpySequence(wsi_pattern=output_pattern, batch_size=8, IMAGE_SIZE=IMAGE_SIZE)
         
         tissue_map = predict_tc(model, wsi_sequence)
