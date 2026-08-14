@@ -7,6 +7,8 @@ import openslide
 from utils import *
 from pathlib import Path
 
+import tensorflow as tf
+
 import warnings
 warnings.filterwarnings('ignore', 
     message='.*Attempting to register factory for plugin.*')
@@ -111,6 +113,13 @@ def process_all_slides(mask_folder, wsi_folder, output_folder, model_type,
 
 def main():
     args = parse_args()
+
+    gpus = tf.config.list_physical_devices("GPU")
+
+    if gpus:
+        print(f"\nGPUs are available: {gpus}")
+    else:
+        print("\nUsing CPU")
 
     process_all_slides(mask_folder=args.mask_folder, wsi_folder=args.wsi_folder, output_folder=args.output_folder,
                        model_type=args.model_type, patch_size_microns=args.patch_size_microns, foreground_thes=args.foreground_threshold,
