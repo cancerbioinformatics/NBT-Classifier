@@ -29,7 +29,7 @@ dependencies:
   - pip:
       - staintools==2.1.2
       - spams-bin==2.6.12
-      - openslide-python==1.1.2
+      - openslide-python>=1.4.6
       - git+https://github.com/choosehappy/HistoQC.git
       - tensorflow==2.12.1 
       - tensorboard==2.12.3
