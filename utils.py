@@ -52,17 +52,36 @@ def get_TC(weights, image_size=(512, 512), num_classes=3, output_features=False)
 
 
 def get_wsiname(file):
-    if ".mrxs" in file:
-        return os.path.basename(file).split(".mrxs")[0]
-    elif ".ndpi" in file:
-        return os.path.basename(file).split(".ndpi")[0]
-    elif ".svs" in file:
-        return os.path.basename(file).split(".svs")[0]
-    elif ".ome.tiff" in file:
-        return os.path.basename(file).split(".ome.tiff")[0]
-    elif ".ome.tif" in file:
-        return os.path.basename(file).split(".ome.tif")[0]
-    return os.path.basename(file)
+    name = os.path.basename(file)
+
+    mask_suffix = "_mask_use.png"
+    if name.casefold().endswith(mask_suffix):
+        name = name[: -len(mask_suffix)]
+
+    suffixes = (
+        ".ome.tiff",
+        ".ome.tif",
+        ".svslide",
+        ".mrxs",
+        ".ndpi",
+        ".vms",
+        ".vmu",
+        ".svs",
+        ".avs",
+        ".dcm",
+        ".tiff",
+        ".tif",
+        ".scn",
+        ".bif",
+        ".czi",
+    )
+
+    name_folded = name.casefold()
+    for suffix in suffixes:
+        if name_folded.endswith(suffix):
+            return name[: -len(suffix)]
+
+    return name
 
 
 def parse_patch_size(wsi, patch_size_microns=128):
@@ -89,7 +108,15 @@ def Reinhard(img_arr, standard_img="./data/he.jpg"):
 
 
 def process_tile_static(
-    wsi, image_level, x, y, patch_size, stride, level_multiplier, downsample
+    wsi,
+    image_level,
+    x,
+    y,
+    patch_size,
+    stride,
+    level_multiplier,
+    downsample,
+    filename,
 ):
     try:
         image_tile = wsi.read_region(
@@ -106,7 +133,7 @@ def process_tile_static(
         return image_tile, x // stride, y // stride
 
     except Exception as e:
-        print(f"Error processing tile at ({x}, {y}) in {wsi_path}: {e}")
+        print(f"Error processing tile at ({x}, {y}) in {filename}: {e}")
         return None
 
 
@@ -194,6 +221,7 @@ class SlideIterator:
             stride=stride,
             level_multiplier=level_multiplier,
             downsample=downsample,
+            filename=filename,
         )
 
         results = []
@@ -263,7 +291,6 @@ def vectorise_wsi(
         print(
             f"Pattern files for {output_pattern.split('_pattern')[0]} already exist. Skipping preprocessing."
         )
-        # return None  # Return None or the existing SlideIterator if needed
         image_tiles = np.load(patches_file, mmap_mode="r")
         return image_tiles.shape[0]
 
@@ -280,8 +307,6 @@ def vectorise_wsi(
         max_workers=max_workers,
     )
 
-    # print(f"Vectorization completed for {output_pattern.split('_pattern')[0]}.")
-    # return si
     if n_patches > 0:
         print(
             f"Vectorization completed for {output_pattern.split('_pattern')[0]} "

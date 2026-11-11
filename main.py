@@ -15,6 +15,37 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", message=".*computation placer already registered.*")
 
 
+def find_wsi(wsi_folder, wsi_name):
+    """Find one OpenSlide-readable WSI matching the mask's slide name."""
+    candidates = []
+
+    for path in Path(wsi_folder).rglob("*"):
+        if not path.is_file():
+            continue
+
+        if not path.name.casefold().startswith(f"{wsi_name}.".casefold()):
+            continue
+
+        try:
+            detected_format = openslide.OpenSlide.detect_format(str(path))
+        except (OSError, openslide.OpenSlideError):
+            continue
+
+        if detected_format is not None:
+            candidates.append(path)
+
+    if len(candidates) == 1:
+        return str(candidates[0])
+
+    if len(candidates) > 1:
+        print(
+            f"Multiple WSI files found for {wsi_name}; skipping:\n"
+            + "\n".join(f"  {path}" for path in candidates)
+        )
+
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Process whole slide images (WSIs) and predict tissue classes."
@@ -134,19 +165,18 @@ def process_all_slides(
     foreground_masks = glob.glob(f"{mask_folder}/*/*_mask_use.png")
     for mask_path in foreground_masks:
         wsi_name = get_wsiname(mask_path)
-        wsi_pattern = os.path.join(wsi_folder, f"{glob.escape(wsi_name)}*.*")
-        wsi_paths = glob.glob(wsi_pattern)
 
-        if not wsi_paths:
-            print(f"No WSI found for {wsi_name}, skipping...")
+        wsi_path = find_wsi(wsi_folder, wsi_name)
+
+        if wsi_path is None:
+            print(f"No unique OpenSlide-readable WSI found for {wsi_name}, skipping...")
             continue
 
-        wsi_path = wsi_paths[0]
-        require_bounds = ".mrxs" in wsi_path
+        require_bounds = Path(wsi_path).suffix.casefold() == ".mrxs"
 
         try:
             wsi = openslide.OpenSlide(wsi_path)
-        except Exception as e:
+        except openslide.OpenSlideError as e:
             print(f"Openslide cannot open {wsi_path}: {e}")
             return
 
